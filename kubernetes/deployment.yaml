@@ -1,28 +1,66 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devops-app
-  labels:
-    app: devops-app
+  name: mongodb
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: devops-app
+      app: mongodb
   template:
     metadata:
       labels:
-        app: devops-app
+        app: mongodb
     spec:
       containers:
-      - name: devops-app
-        image: areeba280/devops-app:v1
+      - name: mongodb
+        image: mongo:6
         ports:
-        - containerPort: 3001
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+        - containerPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: devops-project_backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+        - name: MONGO_URL
+          value: "mongodb://mongodb-service:27017/devopsdb"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: devops-project_frontend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
